@@ -1,6 +1,7 @@
 #include "main.h"
 
 #include "sensor_adapter.h"
+#include "telemetry.h"
 #include "tinyml_inference.h"
 
 #include "tinyml_model_params.h"
@@ -20,6 +21,15 @@ int main(void)
 
     sensor_reset();
 
+#if defined(TINYML_CAPTURE_RAW_STREAM)
+    while (1) {
+        float raw = 0.0f;
+        if (sensor_read_raw_sample(&raw) != 0) {
+            continue;
+        }
+        (void)telemetry_send_sample(raw);
+    }
+#else
     if (tinyml_init() != TINYML_STATUS_OK) {
         while (1) {
         }
@@ -37,9 +47,9 @@ int main(void)
             continue;
         }
 
-        (void)probability;
-        (void)label;
+        (void)telemetry_send_inference(probability, (int)label);
     }
+#endif
 }
 
 void SystemClock_Config(void)
