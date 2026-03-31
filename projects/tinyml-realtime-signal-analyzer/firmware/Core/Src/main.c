@@ -11,13 +11,16 @@ int main(void)
     float probability = 0.0f;
     int32_t label = 0;
 
+    sensor_reset();
+
     if (tinyml_init() != TINYML_STATUS_OK) {
         while (1) {
         }
     }
 
     while (1) {
-        if (sensor_read_feature_vector(features, TINYML_FEATURE_COUNT) != 0) {
+        const int sensor_status = sensor_read_feature_vector(features, TINYML_FEATURE_COUNT);
+        if (sensor_status != 0) {
             continue;
         }
 
