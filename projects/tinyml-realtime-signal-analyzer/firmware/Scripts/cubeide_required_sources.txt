@@ -1,0 +1,6 @@
+Core/Src/main.c
+Core/Src/sensor_adapter.c
+Core/Src/signal_features.c
+Core/Src/sensor_port_stub.c
+Core/Src/tinyml_inference.cc
+Config/tinyml_model_data.c

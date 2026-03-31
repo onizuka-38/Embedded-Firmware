@@ -1,5 +1,6 @@
 #include "sensor_adapter.h"
 
+#include "sensor_port.h"
 #include "signal_features.h"
 
 #include <stdint.h>
@@ -9,24 +10,6 @@
 static float g_ring[SENSOR_WINDOW_SIZE];
 static uint32_t g_count = 0U;
 static uint32_t g_head = 0U;
-
-#if defined(__GNUC__)
-__attribute__((weak))
-#endif
-int sensor_fetch_sample(float *out_sample)
-{
-    static uint32_t tick = 0U;
-    const float phase = (float)(tick % 32U) / 31.0f;
-    float sample = (phase * 2.0f) - 1.0f;
-
-    if (((tick / 256U) % 2U) == 1U) {
-        sample *= 1.8f;
-    }
-
-    *out_sample = sample;
-    tick += 1U;
-    return 0;
-}
 
 void sensor_reset(void)
 {
@@ -70,7 +53,7 @@ int sensor_read_feature_vector(float *features, uint32_t feature_count)
         return -1;
     }
 
-    if (sensor_fetch_sample(&sample) != 0) {
+    if (sensor_port_read_sample(&sample) != 0) {
         return -1;
     }
 

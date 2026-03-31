@@ -5,6 +5,13 @@
 
 #include "tinyml_model_params.h"
 
+static void normalize_features(float *features)
+{
+    for (uint32_t i = 0; i < TINYML_FEATURE_COUNT; ++i) {
+        features[i] = (features[i] - kTinyMlFeatureMeans[i]) / kTinyMlFeatureStds[i];
+    }
+}
+
 int main(void)
 {
     float features[TINYML_FEATURE_COUNT];
@@ -23,6 +30,8 @@ int main(void)
         if (sensor_status != 0) {
             continue;
         }
+
+        normalize_features(features);
 
         if (tinyml_predict(features, TINYML_FEATURE_COUNT, &probability, &label) != TINYML_STATUS_OK) {
             continue;
