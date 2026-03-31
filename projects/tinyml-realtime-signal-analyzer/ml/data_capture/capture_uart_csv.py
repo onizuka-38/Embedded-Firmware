@@ -22,7 +22,7 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> None:
     try:
-        import serial  # type: ignore[import-not-found]
+        import serial
     except ModuleNotFoundError as exc:
         raise SystemExit("pyserial is required: pip install pyserial") from exc
 
