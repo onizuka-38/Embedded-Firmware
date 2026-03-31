@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Logs and local artifacts
+*.log
+*.tmp
+
+# Build outputs (generic)
+build/
+dist/
+out/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TinyML generated artifact
+projects/tinyml-realtime-signal-analyzer/firmware/Config/tinyml_model_params.h
+
+# Rust/embedded generated files
+**/target/
+**/*.elf
+**/*.bin
+**/*.hex
