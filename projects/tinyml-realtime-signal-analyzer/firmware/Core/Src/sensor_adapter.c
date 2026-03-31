@@ -17,6 +17,11 @@ void sensor_reset(void)
     g_head = 0U;
 }
 
+int sensor_read_raw_sample(float *out_sample)
+{
+    return sensor_port_read_sample(out_sample);
+}
+
 int sensor_push_sample(float sample)
 {
     g_ring[g_head] = sample;
@@ -53,7 +58,7 @@ int sensor_read_feature_vector(float *features, uint32_t feature_count)
         return -1;
     }
 
-    if (sensor_port_read_sample(&sample) != 0) {
+    if (sensor_read_raw_sample(&sample) != 0) {
         return -1;
     }
 
