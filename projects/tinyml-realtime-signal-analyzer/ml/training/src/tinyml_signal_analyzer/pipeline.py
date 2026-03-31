@@ -1,9 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 from pathlib import Path
 
-from .data import WindowSample, generate_dataset
+from .data import WindowSample, load_measurement_dataset
 from .features import extract_features, fit_normalizer, normalize_features
 from .model import LogisticBinaryClassifier
 from .quantization import QuantizedLinearModel, quantize_linear_model
@@ -28,11 +29,18 @@ def _split_dataset(
 
 
 def run_training_pipeline(
+    dataset_dir: Path,
     window_size: int = 128,
-    sample_count: int = 600,
+    stride: int = 32,
     seed: int = 42,
 ) -> TrainingArtifact:
-    dataset = generate_dataset(window_size=window_size, sample_count=sample_count, seed=seed)
+    dataset = load_measurement_dataset(
+        data_root=dataset_dir,
+        window_size=window_size,
+        stride=stride,
+    )
+
+    random.Random(seed).shuffle(dataset)
     train_set, test_set = _split_dataset(dataset, train_ratio=0.8)
 
     train_features = [extract_features(sample.signal) for sample in train_set]
@@ -46,7 +54,7 @@ def run_training_pipeline(
     test_y = [sample.label for sample in test_set]
 
     classifier = LogisticBinaryClassifier(feature_count=len(train_x[0]))
-    classifier.fit(train_x, train_y, epochs=350, learning_rate=0.28)
+    classifier.fit(train_x, train_y, epochs=300, learning_rate=0.25)
 
     metrics = classifier.evaluate(test_x, test_y)
     quantized = quantize_linear_model(classifier.weights, classifier.bias)

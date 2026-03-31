@@ -1,8 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-import math
-import random
+import csv
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -11,44 +11,65 @@ class WindowSample:
     label: int
 
 
-def _normal_signal(length: int, rng: random.Random) -> tuple[float, ...]:
-    values: list[float] = []
-    freq = rng.uniform(0.8, 1.2)
-    for idx in range(length):
-        t = idx / float(length)
-        base = math.sin(2.0 * math.pi * freq * t)
-        noise = rng.uniform(-0.08, 0.08)
-        values.append(base + noise)
-    return tuple(values)
+def _majority_label(labels: list[int]) -> int:
+    counts: dict[int, int] = {}
+    for label in labels:
+        counts[label] = counts.get(label, 0) + 1
+    winner = max(counts.items(), key=lambda item: item[1])
+    return winner[0]
 
 
-def _anomaly_signal(length: int, rng: random.Random) -> tuple[float, ...]:
-    values: list[float] = []
-    freq = rng.uniform(1.8, 2.4)
-    spike_index = rng.randint(length // 4, (3 * length) // 4)
-    for idx in range(length):
-        t = idx / float(length)
-        base = math.sin(2.0 * math.pi * freq * t)
-        noise = rng.uniform(-0.10, 0.10)
-        spike = 0.0
-        if abs(idx - spike_index) <= 1:
-            spike = rng.uniform(1.4, 2.0)
-        values.append(base + noise + spike)
-    return tuple(values)
+def _read_signal_rows(csv_path: Path, signal_key: str, label_key: str) -> list[tuple[float, int]]:
+    rows: list[tuple[float, int]] = []
+    with csv_path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        missing = {signal_key, label_key} - set(reader.fieldnames or [])
+        if missing:
+            missing_text = ", ".join(sorted(missing))
+            raise ValueError(f"{csv_path}: missing required columns: {missing_text}")
+
+        for row in reader:
+            rows.append((float(row[signal_key]), int(row[label_key])))
+    return rows
 
 
-def generate_dataset(window_size: int, sample_count: int, seed: int) -> list[WindowSample]:
+def _windowize(rows: list[tuple[float, int]], window_size: int, stride: int) -> list[WindowSample]:
     if window_size < 16:
         raise ValueError("window_size must be at least 16")
-    if sample_count < 10:
-        raise ValueError("sample_count must be at least 10")
+    if stride <= 0:
+        raise ValueError("stride must be positive")
 
-    rng = random.Random(seed)
+    samples: list[WindowSample] = []
+    start = 0
+    while start + window_size <= len(rows):
+        window = rows[start : start + window_size]
+        signal = tuple(value for value, _ in window)
+        labels = [label for _, label in window]
+        samples.append(WindowSample(signal=signal, label=_majority_label(labels)))
+        start += stride
+    return samples
+
+
+def load_measurement_dataset(
+    data_root: Path,
+    window_size: int,
+    stride: int,
+    signal_column: str = "signal",
+    label_column: str = "label",
+) -> list[WindowSample]:
+    if not data_root.exists():
+        raise ValueError(f"dataset path does not exist: {data_root}")
+
+    csv_files = sorted(data_root.rglob("*.csv"))
+    if not csv_files:
+        raise ValueError(f"no CSV files found under: {data_root}")
+
     dataset: list[WindowSample] = []
+    for csv_path in csv_files:
+        rows = _read_signal_rows(csv_path, signal_column, label_column)
+        dataset.extend(_windowize(rows=rows, window_size=window_size, stride=stride))
 
-    for _ in range(sample_count // 2):
-        dataset.append(WindowSample(signal=_normal_signal(window_size, rng), label=0))
-        dataset.append(WindowSample(signal=_anomaly_signal(window_size, rng), label=1))
+    if len(dataset) < 8:
+        raise ValueError("not enough windowed samples; collect more signal data")
 
-    rng.shuffle(dataset)
-    return dataset[:sample_count]
+    return dataset
