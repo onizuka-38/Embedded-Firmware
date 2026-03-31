@@ -20,6 +20,19 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _parse_raw_line(line: str) -> float | None:
+    # Expected firmware format: RAW,<sample>
+    parts = line.split(",")
+    if len(parts) != 2:
+        return None
+    if parts[0] != "RAW":
+        return None
+    try:
+        return float(parts[1])
+    except ValueError:
+        return None
+
+
 def main() -> None:
     try:
         import serial
@@ -40,10 +53,11 @@ def main() -> None:
             line = ser.readline().decode("utf-8", errors="ignore").strip()
             if not line:
                 continue
-            try:
-                sample = float(line)
-            except ValueError:
+
+            sample = _parse_raw_line(line)
+            if sample is None:
                 continue
+
             writer.writerow([f"{sample:.6f}", args.label])
 
 
