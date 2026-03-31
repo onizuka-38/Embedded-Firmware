@@ -1,0 +1,9 @@
+﻿[package]
+name = "fc-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[profile.release]
+debug = 2

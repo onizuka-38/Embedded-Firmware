@@ -1,0 +1,3 @@
+﻿[build]
+# Replace with concrete target, for example: thumbv7em-none-eabihf
+target = "thumbv7em-none-eabihf"
