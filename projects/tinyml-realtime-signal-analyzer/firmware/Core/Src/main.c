@@ -2,6 +2,7 @@
 
 #include "sensor_adapter.h"
 #include "telemetry.h"
+#include "tinyml_app_config.h"
 #include "tinyml_inference.h"
 
 #include "tinyml_model_params.h"
@@ -21,7 +22,7 @@ int main(void)
 
     sensor_reset();
 
-#if defined(TINYML_CAPTURE_RAW_STREAM)
+#if TINYML_CAPTURE_RAW_STREAM
     while (1) {
         float raw = 0.0f;
         if (sensor_read_raw_sample(&raw) != 0) {
@@ -47,7 +48,9 @@ int main(void)
             continue;
         }
 
+#if TINYML_ENABLE_INFERENCE_TELEMETRY
         (void)telemetry_send_inference(probability, (int)label);
+#endif
     }
 #endif
 }

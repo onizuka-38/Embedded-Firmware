@@ -6,8 +6,8 @@
 
 int telemetry_send_sample(float sample)
 {
-    char line[32];
-    const int length = snprintf(line, sizeof(line), "%.6f\n", sample);
+    char line[40];
+    const int length = snprintf(line, sizeof(line), "RAW,%.6f\n", sample);
     if (length <= 0) {
         return -1;
     }
@@ -17,8 +17,8 @@ int telemetry_send_sample(float sample)
 
 int telemetry_send_inference(float probability, int label)
 {
-    char line[48];
-    const int length = snprintf(line, sizeof(line), "prob=%.5f,label=%d\n", probability, label);
+    char line[56];
+    const int length = snprintf(line, sizeof(line), "INF,%.5f,%d\n", probability, label);
     if (length <= 0) {
         return -1;
     }
