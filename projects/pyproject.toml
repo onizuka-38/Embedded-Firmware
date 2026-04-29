@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+testpaths = [
+  "projects/stm32-ble-sensor-hub/verification",
+  "projects/freertos-motor-control/verification",
+  "projects/can-bms-monitor/verification",
+]
+pythonpath = [
+  "projects/stm32-ble-sensor-hub/verification",
+  "projects/freertos-motor-control/verification",
+  "projects/can-bms-monitor/verification",
+]

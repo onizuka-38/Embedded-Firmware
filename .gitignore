@@ -34,3 +34,6 @@ projects/tinyml-realtime-signal-analyzer/firmware/Config/tinyml_model_params.h
 **/*.elf
 **/*.bin
 **/*.hex
+
+# Host test artifacts
+projects/build-host-tests/
